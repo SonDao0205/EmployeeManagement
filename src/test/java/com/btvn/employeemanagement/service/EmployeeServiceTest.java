@@ -1,97 +1,78 @@
 package com.btvn.employeemanagement.service;
 
-import com.btvn.employeemanagement.controller.EmployeeController;
+import com.btvn.employeemanagement.dto.EmployeeDTO;
 import com.btvn.employeemanagement.entity.Employee;
 import com.btvn.employeemanagement.exception.NotFoundException;
-import com.btvn.employeemanagement.service.EmployeeService;
+import com.btvn.employeemanagement.repository.EmployeeRepository;
+import com.btvn.employeemanagement.service.impl.EmployeeServiceImpl;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.mockito.Mockito.*;
 
-@WebMvcTest(EmployeeController.class)
-class EmployeeControllerTest {
+@ExtendWith(MockitoExtension.class)
+class EmployeeServiceTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Mock
+    private EmployeeRepository employeeRepository;
 
-    @MockitoBean
-    private EmployeeService employeeService;
+    @InjectMocks
+    private EmployeeServiceImpl employeeService;
 
-    // Test case 1: GET /api/employees – trả về HTTP 200 và danh sách JSON.
-    @Test
-    void testCase1_getAllEmployees_Return200() throws Exception {
-        Employee emp = new Employee("Dao Truong Son", "IT", 15000000.0);
-        when(employeeService.findAll()).thenReturn(List.of(emp));
+    private Employee sampleEmployee;
 
-        mockMvc.perform(get("/api/v1/employees")
-                        .accept(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data").isArray())
-                .andExpect(jsonPath("$.data[0].fullName").value("Dao Truong Son"));
+    @BeforeEach
+    void setUp() {
+        sampleEmployee = new Employee("Dao Truong Son", "IT", 20000000.0);
+        sampleEmployee.setId(1L);
     }
 
-    // Test case 2: GET /api/employees/{id} – trả về HTTP 200 khi tìm thấy.
     @Test
-    void testCase2_getById_Found() throws Exception {
-        Employee emp = new Employee("Nguyen Van A", "HR", 10000000.0);
-        emp.setId(1L);
-        when(employeeService.findById(1L)).thenReturn(emp);
-
-        mockMvc.perform(get("/api/v1/employees/1")
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.fullName").value("Nguyen Van A"))
-                .andExpect(jsonPath("$.data.department").value("HR"));
+    void getAllEmployees_ReturnList() {
+        when(employeeRepository.findAll()).thenReturn(List.of(sampleEmployee));
+        List<Employee> result = employeeService.findAll();
+        assertFalse(result.isEmpty());
+        assertEquals(1, result.size());
     }
 
-    // Test case 3: GET /api/employees/{id} – trả về HTTP 404 khi không tìm thấy.
     @Test
-    void testCase3_getById_NotFound() throws Exception {
-        when(employeeService.findById(99L)).thenThrow(new NotFoundException("Không tìm thấy nhân viên!"));
-
-        mockMvc.perform(get("/api/v1/employees/99")
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.message").value("Không tìm thấy nhân viên!"));
+    void getById_Found() {
+        when(employeeRepository.findEmployeeById(1L)).thenReturn(sampleEmployee);
+        Employee result = employeeService.findById(1L);
+        assertNotNull(result);
+        assertEquals("Dao Truong Son", result.getFullName());
     }
 
-    // Test case 4: POST /api/employees – trả về HTTP 201 sau khi tạo thành công.
     @Test
-    void testCase4_postEmployee_Success() throws Exception {
-        Employee emp = new Employee("Tran Thi B", "Engineering", 20000000.0);
-        emp.setId(2L);
+    void getById_NotFound_ThrowException() {
+        when(employeeRepository.findEmployeeById(99L)).thenReturn(null);
+        assertThrows(NotFoundException.class, () -> employeeService.findById(99L));
+    }
 
-        when(employeeService.createEmployee(any())).thenReturn(emp);
+    @Test
+    void addEmployee_Success() {
+        EmployeeDTO dto = new EmployeeDTO("Son Dao", "IT", 15000000.0);
+        when(employeeRepository.save(any(Employee.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        // Sử dụng chuỗi JSON thuần thay cho ObjectMapper
-        String jsonBody = """
-                {
-                    "fullName": "Tran Thi B",
-                    "department": "Engineering",
-                    "salary": 20000000
-                }
-                """;
+        Employee saved = employeeService.createEmployee(dto);
+        assertNotNull(saved);
+        assertEquals("Son Dao", saved.getFullName());
+    }
 
-        mockMvc.perform(post("/api/v1/employees")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonBody)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.fullName").value("Tran Thi B"));
+    @Test
+    void deleteEmployee_RemovesCorrectElement() {
+        when(employeeRepository.findEmployeeById(1L)).thenReturn(sampleEmployee);
+
+        employeeService.deleteEmployee(1L);
+
+        verify(employeeRepository, times(1)).delete(sampleEmployee);
     }
 }
