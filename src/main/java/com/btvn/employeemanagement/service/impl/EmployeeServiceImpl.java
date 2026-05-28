@@ -27,12 +27,10 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public Employee findById(Long id) {
-        Employee emp = employeeRepository.findEmployeeById(id);
-        if(emp == null){
+        return employeeRepository.findById(id).orElseThrow(() -> {
             logger.warn(">>> LOGGER : Employee not found with id: {}", id);
-            throw new NotFoundException("Không tìm thấy nhân viên với id này!");
-        }
-        return emp;
+            return new NotFoundException("Không tìm thấy nhân viên với id này!");
+        });
     }
 
     @Override
@@ -47,7 +45,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         emp.setFullName(dto.getFullName());
         emp.setDepartment(dto.getDepartment());
         emp.setSalary(dto.getSalary());
-        return employeeRepository.update(emp);
+        return employeeRepository.save(emp);
     }
 
     @Override

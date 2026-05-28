@@ -31,8 +31,7 @@ class EmployeeServiceTest {
 
     @BeforeEach
     void setUp() {
-        sampleEmployee = new Employee("Dao Truong Son", "IT", 20000000.0);
-        sampleEmployee.setId(1L);
+        sampleEmployee = new Employee(1L,"Dao Truong Son", "IT", 20000000.0);
     }
 
     @Test
@@ -45,7 +44,7 @@ class EmployeeServiceTest {
 
     @Test
     void getById_Found() {
-        when(employeeRepository.findEmployeeById(1L)).thenReturn(sampleEmployee);
+        when(employeeRepository.findById(1L)).thenReturn(sampleEmployee);
         Employee result = employeeService.findById(1L);
         assertNotNull(result);
         assertEquals("Dao Truong Son", result.getFullName());
@@ -53,7 +52,7 @@ class EmployeeServiceTest {
 
     @Test
     void getById_NotFound_ThrowException() {
-        when(employeeRepository.findEmployeeById(99L)).thenReturn(null);
+        when(employeeRepository.findById(99L)).thenReturn(null);
         assertThrows(NotFoundException.class, () -> employeeService.findById(99L));
     }
 
