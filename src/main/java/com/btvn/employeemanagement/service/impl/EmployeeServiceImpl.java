@@ -29,7 +29,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     public Employee findById(Long id) {
         Employee emp = employeeRepository.findEmployeeById(id);
         if(emp == null){
-            logger.warn("Employee not found with id: {}", id);
+            logger.warn(">>> LOGGER : Employee not found with id: {}", id);
             throw new NotFoundException("Không tìm thấy nhân viên với id này!");
         }
         return emp;

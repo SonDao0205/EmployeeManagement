@@ -5,12 +5,14 @@ import com.btvn.employeemanagement.dto.EmployeeDTO;
 import com.btvn.employeemanagement.entity.Employee;
 import com.btvn.employeemanagement.service.EmployeeService;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/employees")
 public class EmployeeController {
@@ -23,6 +25,7 @@ public class EmployeeController {
 
     @GetMapping
     public ResponseEntity<ApiDataResponse<List<Employee>>> findAll() {
+        log.info(">>> LOGGER : GET /api/v1/employees called");
         List<Employee> employees = employeeService.findAll();
         return new ResponseEntity<>(new ApiDataResponse<>(
                 true,
@@ -34,6 +37,7 @@ public class EmployeeController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiDataResponse<Employee>> findById(@PathVariable Long id) {
+        log.info(">>> LOGGER : GET /api/v1/employees/{} called", id);
         Employee employee = employeeService.findById(id);
         return new ResponseEntity<>(new ApiDataResponse<>(
                 true,
@@ -45,6 +49,7 @@ public class EmployeeController {
 
     @PostMapping
     public ResponseEntity<ApiDataResponse<Employee>> save(@Valid @RequestBody EmployeeDTO dto) {
+        log.info(">>> LOGGER : POST /api/v1/employees called with data: {}", dto);
         return new ResponseEntity<>(new ApiDataResponse<>(
                 true,
                 "Thêm nhân viên thành công!",
@@ -55,6 +60,7 @@ public class EmployeeController {
 
     @PutMapping("/{id}")
     public ResponseEntity<ApiDataResponse<Employee>> update(@PathVariable Long id, @Valid @RequestBody EmployeeDTO dto) {
+        log.info(">>> LOGGER : PUT /api/v1/employees/{} called", id);
         Employee update = employeeService.updateEmployee(dto,id);
         return new ResponseEntity<>(new ApiDataResponse<>(
                 true,
@@ -66,6 +72,7 @@ public class EmployeeController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiDataResponse<Employee>> delete(@PathVariable Long id) {
+        log.info(">>> LOGGER : DELETE /api/v1/employees/{} called", id);
         employeeService.deleteEmployee(id);
         return new ResponseEntity<>(new ApiDataResponse<>(
                 true,

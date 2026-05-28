@@ -17,12 +17,12 @@ public class LoggingAspect {
 
     @Before("execution(* com.btvn.employeemanagement.controller.*.*(..))")
     public void logBeforeController(JoinPoint joinPoint) {
-        logger.info("AOP Before: Method {} is being called", joinPoint.getSignature().getName());
+        logger.info(">>> LOGGER : AOP Before: Method {} is being called", joinPoint.getSignature().getName());
     }
 
     @AfterReturning(pointcut = "execution(* com.btvn.employeemanagement.service.*.*(..))", returning = "result")
     public void logAfterService(JoinPoint joinPoint, Object result) {
-        logger.info("AOP AfterReturning: Method {} returned value: {}",
+        logger.info(">>> LOGGER : AOP AfterReturning: Method {} returned value: {}",
                 joinPoint.getSignature().getName(), result != null ? result.toString() : "null");
     }
 
@@ -31,7 +31,7 @@ public class LoggingAspect {
         long start = System.currentTimeMillis();
         Object proceed = joinPoint.proceed();
         long executionTime = System.currentTimeMillis() - start;
-        logger.info("AOP Around: {} executed in {}ms", joinPoint.getSignature(), executionTime);
+        logger.info(">>> LOGGER : AOP Around: {} executed in {}ms", joinPoint.getSignature(), executionTime);
         return proceed;
     }
 }
